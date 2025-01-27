@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(uuid())
+  email             String            @unique
+  name              String
+  password          String
+  phone             String
+  date_of_birth     DateTime          @db.Date
+  cpf               String            @unique
+  role              Role              @default(User)
+  Manager           Manager?
+  Admin             Admin?
+  orders            Order[]
+  reviews           Review[]
+  cart              Cart?
+  addresses         Address[]
+  @@index([email])
+  @@index([cpf])
+  @@map("users")
+}
+
+model Address {
+  id         String       @id @default(uuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  address    String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  type       AddressType
+  orders     Order[]      @relation("ShippingAddress")
+  billing    Order[]      @relation("BillingAddress")
+
+  @@map("addresses")
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+model Manager {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+  team   String
+
+  @@map("managers")
+}
+
+model Admin {
+  id          String @id @default(uuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id])
+  permissions String
+
+  @@map("admins")
+}
+
+model Product {
+  id               String             @id @default(uuid())
+  name             String
+  sku              String             @unique
+  description      String
+  price            Float
+  categoryId       String
+  category         ProductCategory    @relation(fields: [categoryId], references: [id])
+  reviews          Review[]
+  orderItems       OrderItem[]
+  stock            Stock[]
+  supplierId       String?
+  supplier         Supplier?          @relation(fields: [supplierId], references: [id])
+  CartItem         CartItem[]
+  ProductVariation ProductVariation[]
+  Skus             Sku[]
+
+  @@index([sku])
+  @@map("products")
+}
+
+model ProductVariation {
+  id              String            @id @default(uuid())
+  productId       String
+  sku             String            @unique
+  price           Float
+  stock           Int
+  product         Product           @relation(fields: [productId], references: [id])
+  AttributeOption AttributeOption[]
+
+  @@map("product_variations")
+}
+
+model AttributeOption {
+  id                 String               @id @default(uuid())
+  value              String
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  productVariationId String
+  productVariation   ProductVariation     @relation(fields: [productVariationId], references: [id])
+  AttributeOptionSku AttributeOptionSku[]
+
+  @@map("attribute_options")
+}
+
+model Sku {
+  id                 String               @id @default(uuid())
+  code               String
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  productId          String
+  product            Product              @relation(fields: [productId], references: [id])
+  AttributeOptionSku AttributeOptionSku[]
+
+  @@index([code])
+  @@map("skus")
+}
+
+model AttributeOptionSku {
+  sku               Sku             @relation(fields: [skuId], references: [id])
+  skuId             String
+  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id])
+  attributeOptionId String
+
+  @@id([skuId, attributeOptionId])
+}
+
+model ProductCategory {
+  id          String    @id @default(uuid())
+  name        String
+  code        String    @unique
+  description String
+  parentCode  String?
+  products    Product[]
+
+  @@index([code])
+  @@map("product_categories")
+}
+
+model Stock {
+  id        String  @id @default(uuid())
+  productId String
+  quantity  Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("stocks")
+}
+
+model Order {
+  id                String          @id @default(uuid())
+  userId            String
+  totalAmount       Float
+  status            OrderStatus
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  user              User            @relation(fields: [userId], references: [id])
+  orderItems        OrderItem[]
+  shippingAddressId String
+  shippingAddress   Address         @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddressId  String
+  billingAddress    Address         @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  paymentMethodId   String
+  paymentMethod     PaymentMethod   @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  productId   String
+  quantity    Int
+  priceAtTime Float
+  order       Order   @relation(fields: [orderId], references: [id])
+  product     Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int
+  review    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("reviews")
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  name        String
+  contactInfo String
+  products    Product[]
+
+  @@map("suppliers")
+}
+
+model PaymentMethod {
+  id      String  @id @default(uuid())
+  type    String
+  details String?
+  orders  Order[]
+
+  @@map("payment_methods")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  cartItems CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int
+  product   Product @relation(fields: [productId], references: [id])
+  cart      Cart    @relation(fields: [cartId], references: [id])
+
+  @@map("cart_items")
+}
+
+enum Role {
+  User
+  Manager
+  Admin
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

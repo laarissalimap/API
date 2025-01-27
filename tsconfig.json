@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2016", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    /* Modules */
+    "module": "commonjs", /* Specify what module code is generated. */
+    "rootDir": "./src", /* Diretório onde os arquivos TypeScript estão localizados */
+    "outDir": "./dist", /* Diretório onde os arquivos JavaScript compilados serão colocados */
+    "esModuleInterop": true, /* Permite importações default para módulos CommonJS */
+    "forceConsistentCasingInFileNames": true, /* Garante que a caixa das letras nos imports seja consistente */
+    /* Type Checking */
+    "strict": true, /* Ativa todas as verificações estritas */
+    "skipLibCheck": true, /* Pula a verificação dos arquivos .d.ts */
+    "resolveJsonModule": true /* Permite importar arquivos JSON como módulos */
+  },
+  "include": [
+    "src/**/*" /* Inclui todos os arquivos TypeScript na pasta src */
+  ],
+  "exclude": [
+    "node_modules" /* Exclui a pasta node_modules */
+  ]
+}

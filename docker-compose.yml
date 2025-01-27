@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+
+  <% if (database === 'PostgreSQL') { %>
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+  <% } %>
+
+  <% if (database === 'MySQL') { %>
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+  <% } %>
+
+  <% if (cache === 'Redis') { %>
+  cache:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - mynetwork
+  <% } %>
+
+  <% if (cache === 'Memcached') { %>
+  cache:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    restart: always
+    networks:
+      - mynetwork
+  <% } %>
+
+volumes:
+  <% if (database === 'PostgreSQL') { %> 
+  postgres_data:
+  <% } %>
+  <% if (database === 'MySQL') { %>
+  mysql_data:
+  <% } %>
+  <% if (cache === 'Redis') { %>
+  redis_data:
+  <% } %>
+  <% if (cache === 'Memcached') { %>
+  memcached_data:
+  <% } %>
+
+networks:
+  mynetwork:
